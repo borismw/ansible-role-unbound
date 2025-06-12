@@ -1,0 +1,7 @@
+---
+
+- name: Reload unbound
+  ansible.builtin.service:
+    name: "{{ unbound_service }}"
+    state: reloaded
+  become: true

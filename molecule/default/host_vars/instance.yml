@@ -1,10 +1,13 @@
 unbound_listen_ipv4:
   - 127.0.0.1
-unbound_listen_ipv6:
-  - ::1
-unbound_prefetch: True
-unbound_zones: []
+  - 10.11.0.1
+unbound_zones:
+  - name: 'borismw.com'
+    type: stub
+    hosts:
+      - 192.168.2.1
 unbound_access_control:
+  - "10.11.0.0/24 allow"
   - "0.0.0.0/0 deny"
   - "127.0.0.0/8 allow"
   - "::0/0 deny"

@@ -24,12 +24,32 @@
     - "{{ unbound_packages }}"
   tags: unbound
 
-- name: anchor
+- name: Check if a root anchor file is already present
+  ansible.builtin.stat:
+    path: "{{ unbound_trustanchor_file }}"
+  register: _unbound_trustanchor_file_stat
+
+- name: Use builtin trust anchor file
+  ansible.builtin.shell:
+    cmd: "unbound-anchor -l > {{ unbound_trustanchor_file | quote }}"
+  when: _unbound_trustanchor_file_stat.stat.exists is defined and _unbound_trustanchor_file_stat.stat.exists == False
+  become: true
+
+- name: Update unbound root anchor file
   ansible.builtin.command:
     argv:
       - "unbound-anchor"
       - "-a"
       - "{{ unbound_trustanchor_file }}"
+  become: true
+
+- name: Ensure permissions to root anchor file
+  ansible.builtin.file:
+    path: "{{ unbound_trustanchor_file }}"
+    owner: "{{ unbound_owner }}"
+    group: "{{ unbound_group }}"
+    mode: '600'
+  become: yes
 
 - name: Main unbound config file
   ansible.builtin.template:

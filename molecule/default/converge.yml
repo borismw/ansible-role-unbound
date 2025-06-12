@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - role: borismw.unbound
+  tasks:
+    - name: Install dnsutils
+      ansible.builtin.package:
+        name: dnsutils
+        state: present
+      become: true

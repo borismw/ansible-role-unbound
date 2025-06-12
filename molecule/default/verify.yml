@@ -1,0 +1,42 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  tasks:
+
+    # Only collect network facts to reduce setup time
+    - name: Gathering Facts
+      ansible.builtin.setup:
+        gather_subset:
+          - 'network'
+
+    - name: Set local_dns variable for dig
+      ansible.builtin.set_fact:
+        local_dns: "{{ '@' + ansible_default_ipv4.address }}"
+
+    - name: Query failing DNSSEC sigfail. domain
+      ansible.builtin.command:
+        argv:
+          - "dig"
+          - "{{ local_dns }}"
+          - "sigfail.verteiltesysteme.net"
+          - "+timeout=20"
+      register: _dnssec_sigfail_dig
+
+    - name: Assert failing DNSSEC sigfail. domain
+      ansible.builtin.assert:
+        that: "{{ 'status: SERVFAIL' in _dnssec_sigfail_dig.stdout }}"
+
+    - name: Query DNSSEC sigok. domain
+      ansible.builtin.command:
+        argv:
+          - "dig"
+          - "{{ local_dns }}"
+          - "sigok.verteiltesysteme.net"
+          - "+timeout=20"
+      register: _dnssec_sigok_dig
+
+    - name: Assert DNSSEC sigok. domain
+      ansible.builtin.assert:
+        that: "{{ 'status: NOERROR' in _dnssec_sigok_dig.stdout }}"

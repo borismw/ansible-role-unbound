@@ -3,4 +3,6 @@ unbound_packages:
   - unbound-anchor
 unbound_config: /etc/unbound/unbound.conf
 unbound_service: unbound
-unbound_trustanchor_file: /etc/unbound/trusted-key.key
+unbound_owner: unbound
+unbound_group: unbound
+unbound_trustanchor_file: "/var/lib/unbound/root.key"
