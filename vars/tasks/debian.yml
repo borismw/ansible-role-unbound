@@ -1,0 +1,6 @@
+unbound_packages:
+  - unbound
+  - unbound-anchor
+unbound_config: /etc/unbound/unbound.conf
+unbound_service: unbound
+unbound_trustanchor_file: /etc/unbound/trusted-key.key

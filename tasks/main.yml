@@ -1,0 +1,53 @@
+---
+# Initialise distribution-specific variables
+- name: Source specific variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family | lower }}.yml"
+  tags: unbound
+
+# Fix molecule and ci failures
+- name: Update package cache for Debian based distros
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  changed_when: false
+  when: ansible_os_family == 'Debian'
+  tags: unbound
+
+- name: Install unbound
+  ansible.builtin.package:
+    pkg: "{{ item }}"
+    state: present
+  become: true
+  with_items:
+    - "{{ unbound_packages }}"
+  tags: unbound
+
+- name: anchor
+  ansible.builtin.command:
+    argv:
+      - "unbound-anchor"
+      - "-a"
+      - "{{ unbound_trustanchor_file }}"
+
+- name: Main unbound config file
+  ansible.builtin.template:
+    src: etc_unbound.conf.j2
+    dest: "{{ unbound_config }}"
+    owner: "{{ unbound_owner }}"
+    group: "{{ unbound_group }}"
+    mode: 0640
+    setype: named_conf_t
+    validate: 'unbound-checkconf %s'
+  become: true
+  notify: Reload unbound
+  tags: unbound
+
+- name: Start unbound service
+  ansible.builtin.service:
+    name: "{{ unbound_service }}"
+    state: started
+    enabled: true
+  become: true
+  tags: unbound
